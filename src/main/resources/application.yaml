@@ -1,3 +1,27 @@
 spring:
-  application:
-    name: apirest.joao
+  datasource:
+    url: jdbc:postgresql://localhost:5432/apirest
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show_sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+
+server:
+  error:
+    include-message: always
+
+jwt:
+  public:
+    key: classpath:certs/authz.pub
+  private:
+    key: classpath:certs/authz.pem

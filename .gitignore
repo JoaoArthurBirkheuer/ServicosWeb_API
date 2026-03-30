@@ -61,3 +61,4 @@ dump.rdb
 # *.env
 # application-local.properties
 # application-dev.properties
+src/main/resources/certs/
