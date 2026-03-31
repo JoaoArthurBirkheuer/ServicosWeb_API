@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface EstacaoRepository extends JpaRepository<Long, Estacao> {
+public interface EstacaoRepository extends JpaRepository<Estacao, Long> {
     boolean existsByCodigo(String codigo);
     List<Estacao> findAllByAtivaTrue();
 }
