@@ -11,4 +11,5 @@ public interface LeituraRepository extends JpaRepository<Leitura, Long> {
     List<Leitura> findAllByEstacaoId(Long estacaoId);
     List<Leitura> findAllByEstacaoIdAndQualidade(Long estacaoId, QualidadeLeitura qualidade);
     Optional<Leitura> findByIdAndEstacaoId(Long id, Long estacaoId);
+    Optional<Leitura> findFirstByEstacaoIdOrderByTimestampLeituraDesc(Long estacaoId);
 }

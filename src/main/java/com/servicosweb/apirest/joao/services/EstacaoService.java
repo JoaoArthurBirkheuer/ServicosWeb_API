@@ -9,7 +9,6 @@ import com.servicosweb.apirest.joao.exceptions.AcessoNegadoException;
 import com.servicosweb.apirest.joao.exceptions.RecursoNaoEncontradoException;
 import com.servicosweb.apirest.joao.exceptions.RegraDeNegocioException;
 import com.servicosweb.apirest.joao.repositories.EstacaoRepository;
-import com.servicosweb.apirest.joao.repositories.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -18,11 +17,9 @@ import java.util.List;
 public class EstacaoService {
 
     private final EstacaoRepository estacaoRepository;
-    private final UsuarioRepository usuarioRepository;
 
-    public EstacaoService(EstacaoRepository estacaoRepository, UsuarioRepository usuarioRepository) {
+    public EstacaoService(EstacaoRepository estacaoRepository) {
         this.estacaoRepository = estacaoRepository;
-        this.usuarioRepository = usuarioRepository;
     }
 
     public List<EstacaoResponseDTO> listarAtivas() {
@@ -59,7 +56,8 @@ public class EstacaoService {
 
     @Transactional
     public void desativar(Long id, Usuario executor) {
-        Estacao estacao = buscarEntidade(id);
+        Estacao estacao = estacaoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Estação não encontrada."));
         verificarPropriedade(estacao, executor);
         estacao.setAtiva(false);
         estacaoRepository.save(estacao);

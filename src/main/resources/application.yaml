@@ -25,3 +25,7 @@ jwt:
     key: classpath:certs/authz.pub
   private:
     key: classpath:certs/authz.pem
+
+app:
+  admin:
+    master-key: ${SECRET-KEY:IFSul@2026}
