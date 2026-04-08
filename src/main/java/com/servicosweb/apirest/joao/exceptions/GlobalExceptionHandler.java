@@ -50,4 +50,9 @@ public class GlobalExceptionHandler {
         body.put("message", message);
         return new ResponseEntity<>(body, status);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleGeneral(Exception ex) {
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Ocorreu um erro interno inesperado.");
+    }
 }

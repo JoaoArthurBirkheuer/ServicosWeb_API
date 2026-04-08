@@ -31,7 +31,7 @@ public class LeituraService {
     @Transactional
     public LeituraResponseDTO salvar(Long estacaoId, LeituraRequestDTO dto, Usuario usuario) {
         Estacao estacao = estacaoRepository.findById(estacaoId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Estação não encontrada."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Estação não encontrada com o ID: " + estacaoId));
 
         validarPropriedade(estacao, usuario);
 
@@ -60,7 +60,12 @@ public class LeituraService {
         leituraRepository.delete(leitura);
     }
 
+    @Transactional(readOnly = true)
     public List<LeituraResponseDTO> listarPorEstacao(Long estacaoId, QualidadeLeitura qualidade) {
+        if (!estacaoRepository.existsById(estacaoId)) {
+            throw new RecursoNaoEncontradoException("Estação não encontrada.");
+        }
+
         List<Leitura> leituras = (qualidade != null)
                 ? leituraRepository.findAllByEstacaoIdAndQualidade(estacaoId, qualidade)
                 : leituraRepository.findAllByEstacaoId(estacaoId);
@@ -68,11 +73,18 @@ public class LeituraService {
         return leituras.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public LeituraResponseDTO buscarUltima(Long estacaoId) {
+        Leitura leitura = leituraRepository.findFirstByEstacaoIdOrderByTimestampLeituraDesc(estacaoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma leitura encontrada para a estação: " + estacaoId));
+        return mapToResponse(leitura);
+    }
+
     private void validarPropriedade(Estacao estacao, Usuario usuario) {
         boolean ehDono = estacao.getUsuario().getId().equals(usuario.getId());
         boolean ehAdmin = usuario.getRole() == Role.ADMIN;
         if (!ehDono && !ehAdmin) {
-            throw new AcessoNegadoException("Sem permissão para operar nesta estação.");
+            throw new AcessoNegadoException("Você não possui permissão para gerenciar leituras desta estação.");
         }
     }
 
@@ -82,11 +94,5 @@ public class LeituraService {
                 l.getPressao(), l.getVelocidadeVento(), l.getDirecaoVento(),
                 l.getPrecipitacao(), l.getQualidade()
         );
-    }
-
-    public LeituraResponseDTO buscarUltima(Long estacaoId) {
-        Leitura leitura = leituraRepository.findFirstByEstacaoIdOrderByTimestampLeituraDesc(estacaoId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma leitura encontrada para esta estação."));
-        return mapToResponse(leitura);
     }
 }

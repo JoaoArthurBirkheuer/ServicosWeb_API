@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.servicosweb.apirest.joao.entities.converters.JsonNodeConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +32,8 @@ public class Estacao {
     @Column(nullable = false)
     private Boolean ativa;
 
-    @Convert(converter = JsonNodeConverter.class)
-    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "metadata", columnDefinition = "jsonb")
     private JsonNode metadata;
 
     @ManyToOne(fetch = FetchType.LAZY)

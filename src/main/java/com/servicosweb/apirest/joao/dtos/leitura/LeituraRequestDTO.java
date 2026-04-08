@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record LeituraRequestDTO(
-        @NotNull Long estacaoId,
+        @NotNull(message = "ID da estação é obrigatório") Long estacaoId,
         LocalDateTime timestampLeitura,
         BigDecimal temperatura,
         BigDecimal umidade,

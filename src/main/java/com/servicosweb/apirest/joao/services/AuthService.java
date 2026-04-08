@@ -2,6 +2,7 @@ package com.servicosweb.apirest.joao.services;
 
 import com.servicosweb.apirest.joao.dtos.auth.LoginRequestDTO;
 import com.servicosweb.apirest.joao.entities.Usuario;
+import com.servicosweb.apirest.joao.exceptions.RegraDeNegocioException;
 import com.servicosweb.apirest.joao.repositories.UsuarioRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,14 +29,14 @@ public class AuthService {
 
     public String autenticar(LoginRequestDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new RuntimeException("Usuário ou senha inválidos."));
+                .orElseThrow(() -> new RegraDeNegocioException("Usuário ou senha inválidos."));
 
         if (!passwordEncoder.matches(dto.senha(), usuario.getPassword())) {
-            throw new RuntimeException("Usuário ou senha inválidos.");
+            throw new RegraDeNegocioException("Usuário ou senha inválidos.");
         }
 
         Instant now = Instant.now();
-        long expiresAt = 3600L; // 1 hora
+        long expiresAt = 3600L;
 
         String scope = usuario.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

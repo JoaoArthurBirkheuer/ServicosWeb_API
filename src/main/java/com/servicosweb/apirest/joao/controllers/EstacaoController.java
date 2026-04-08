@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,8 +41,10 @@ public class EstacaoController {
 
     @Operation(summary = "Cria uma nova estação", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
-    public ResponseEntity<EstacaoResponseDTO> criar(@RequestBody @Valid EstacaoRequestDTO dto, @AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(estacaoService.criar(dto, usuario));
+    public ResponseEntity<EstacaoResponseDTO> criar(@RequestBody @Valid EstacaoRequestDTO dto, @AuthenticationPrincipal Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        EstacaoResponseDTO response = estacaoService.criarComEmail(dto, email);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Atualiza uma estação", security = @SecurityRequirement(name = "bearerAuth"))

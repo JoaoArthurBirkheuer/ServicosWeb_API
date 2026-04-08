@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/apirest
+    url: jdbc:postgresql://localhost:5432/apirest?stringtype=unspecified
     username: ${PGUSER}
     password: ${PGPASSWORD}
 

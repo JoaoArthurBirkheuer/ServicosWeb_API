@@ -6,6 +6,7 @@ import com.servicosweb.apirest.joao.entities.Usuario;
 import com.servicosweb.apirest.joao.enums.Role;
 import com.servicosweb.apirest.joao.exceptions.AcessoNegadoException;
 import com.servicosweb.apirest.joao.exceptions.RecursoNaoEncontradoException;
+import com.servicosweb.apirest.joao.exceptions.RegraDeNegocioException;
 import com.servicosweb.apirest.joao.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,12 +30,12 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
         if (usuarioRepository.existsByEmail(dto.email())) {
-            throw new RuntimeException("Email já cadastrado.");
+            throw new RegraDeNegocioException("Email já cadastrado.");
         }
 
         if (Role.ADMIN.equals(dto.role())) {
             if (dto.adminKey() == null || !dto.adminKey().equals(adminMasterKey)) {
-                throw new RuntimeException("Chave mestra inválida. Você não tem permissão para criar um administrador.");
+                throw new RegraDeNegocioException("Chave mestra inválida. Você não tem permissão para criar um administrador.");
             }
         }
 
@@ -54,7 +55,7 @@ public class UsuarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getEmail().equals(dto.email()) && usuarioRepository.existsByEmail(dto.email())) {
-            throw new RuntimeException("Novo email já está em uso.");
+            throw new RegraDeNegocioException("Novo email já está em uso.");
         }
 
         usuario.setNome(dto.nome());
@@ -73,12 +74,17 @@ public class UsuarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         if (alvo.getRole() == Role.ADMIN && novaRole == Role.USER) {
-            throw new RuntimeException("Operação negada: Um ADMIN não pode ser rebaixado.");
+            throw new RegraDeNegocioException("Operação negada: Um ADMIN não pode ser rebaixado.");
         }
 
         alvo.setRole(novaRole);
 
         return mapToResponse(usuarioRepository.save(alvo));
+    }
+
+    public Usuario buscarEntidadePorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new AcessoNegadoException("Usuário autenticado não encontrado."));
     }
 
     @Transactional
@@ -87,7 +93,7 @@ public class UsuarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         if (executor.getRole() == Role.ADMIN && executor.getEmail().equals(alvo.getEmail())) {
-            throw new RuntimeException("Um administrador não pode remover a própria conta por este endpoint.");
+            throw new RegraDeNegocioException("Um administrador não pode remover a própria conta por este endpoint.");
         }
 
         if (executor.getEmail().equals(alvo.getEmail()) || executor.getRole() == Role.ADMIN) {
@@ -99,5 +105,11 @@ public class UsuarioService {
 
     private UsuarioResponseDTO mapToResponse(Usuario u) {
         return new UsuarioResponseDTO(u.getNome(), u.getEmail(), u.getRole(), u.getCreatedAt());
+    }
+
+    public UsuarioResponseDTO buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com o ID: " + id));
     }
 }

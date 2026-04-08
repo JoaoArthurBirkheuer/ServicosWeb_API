@@ -4,6 +4,7 @@ import com.servicosweb.apirest.joao.dtos.usuario.UsuarioRequestDTO;
 import com.servicosweb.apirest.joao.dtos.usuario.UsuarioResponseDTO;
 import com.servicosweb.apirest.joao.entities.Usuario;
 import com.servicosweb.apirest.joao.enums.Role;
+import com.servicosweb.apirest.joao.exceptions.AcessoNegadoException;
 import com.servicosweb.apirest.joao.services.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Perfil e Usuário")
@@ -30,8 +32,13 @@ public class UsuarioController {
 
     @Operation(summary = "Obtém dados do usuário logado", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/me")
-    public ResponseEntity<UsuarioResponseDTO> obterMeuPerfil(@AuthenticationPrincipal Usuario logado) {
-        return ResponseEntity.ok(new UsuarioResponseDTO(logado.getNome(), logado.getEmail(), logado.getRole(), logado.getCreatedAt()));
+    public ResponseEntity<UsuarioResponseDTO> obterMeuPerfil(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            throw new AcessoNegadoException("Usuário não autenticado.");
+        }
+        Long id = Long.parseLong(jwt.getSubject());
+        UsuarioResponseDTO response = usuarioService.buscarPorId(id);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Atualiza dados do próprio perfil", security = @SecurityRequirement(name = "bearerAuth"))
@@ -59,7 +66,9 @@ public class UsuarioController {
 
     @Operation(summary = "Remove um usuário", security = @SecurityRequirement(name = "bearerAuth"))
     @DeleteMapping("/{email}")
-    public ResponseEntity<Void> deletar(@PathVariable String email, @AuthenticationPrincipal Usuario executor) {
+    public ResponseEntity<Void> deletar(@PathVariable String email, @AuthenticationPrincipal Jwt jwt) {
+        String emailLogado = jwt.getClaimAsString("email");
+        Usuario executor = usuarioService.buscarEntidadePorEmail(emailLogado);
         usuarioService.deletarConta(email, executor);
         return ResponseEntity.noContent().build();
     }
