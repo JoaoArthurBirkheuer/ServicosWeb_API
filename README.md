@@ -31,13 +31,17 @@ A escolha da stack tecnológica baseou-se nos padrões atuais de mercado e nos r
 
 ### Instalação
 1. Clone o repositório.
-2. Configure o arquivo `src/main/resources/application.yaml` com as credenciais do seu banco de dados.
-3. Execute a aplicação:
+2. Crie a base de dados `apirest` no PostgreSQL.
+3. Configure o arquivo `src/main/resources/application.yaml` com as credenciais do seu banco de dados.
+4. Para o Spring Security, é necessário chaves pública e privada. Deve-se executar no diretório do projeto:
+   1. `mkdir -p src/main/resources/certs`
+   2. `openssl genrsa -out src/main/resources/certs/authz.pem 2048`
+   3. `openssl rsa -in src/main/resources/certs/authz.pem -pubout -out src/main/resources/certs/authz.pub`
+5. Acesse a documentação interativa em: `http://localhost:8080/swagger-ui/index.html`
+6. Execute a aplicação:
    ```bash
    ./mvnw spring-boot:run
    ```
-4. Acesse a documentação interativa em: `http://localhost:8080/swagger-ui/index.html`
-
 ---
 
 ## TABELAS DE ROTAS
